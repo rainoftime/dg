@@ -1,8 +1,5 @@
-/// XXX add licence
-//
-
-#ifndef _BBLOCK_H_
-#define _BBLOCK_H_
+#ifndef _DG_BBLOCK_H_
+#define _DG_BBLOCK_H_
 
 #include <cassert>
 #include <list>
@@ -13,43 +10,43 @@
 namespace dg {
 
 /// ------------------------------------------------------------------
-// - BBlock
+// - DGBBlock
 //     Basic block structure for dependence graph
 /// ------------------------------------------------------------------
 template <typename NodeT>
-class BBlock
+class DGBBlock
 {
 public:
     using KeyT = typename NodeT::KeyType;
     using DependenceGraphT = typename NodeT::DependenceGraphType;
 
-    struct BBlockEdge {
-        BBlockEdge(BBlock<NodeT>* t, uint8_t label = 0)
+    struct DGBBlockEdge {
+        DGBBlockEdge(DGBBlock<NodeT>* t, uint8_t label = 0)
             : target(t), label(label) {}
 
-        BBlock<NodeT> *target;
+        DGBBlock<NodeT> *target;
         // we'll have just numbers as labels now.
         // We can change it if there's a need
         uint8_t label;
 
-        bool operator==(const BBlockEdge& oth) const
+        bool operator==(const DGBBlockEdge& oth) const
         {
             return target == oth.target && label == oth.label;
         }
 
-        bool operator!=(const BBlockEdge& oth) const
+        bool operator!=(const DGBBlockEdge& oth) const
         {
             return operator==(oth);
         }
 
-        bool operator<(const BBlockEdge& oth) const
+        bool operator<(const DGBBlockEdge& oth) const
         {
             return target == oth.target ?
                         label < oth.label : target < oth.target;
         }
     };
 
-    BBlock<NodeT>(NodeT *head = nullptr, DependenceGraphT *dg = nullptr)
+    DGBBlock<NodeT>(NodeT *head = nullptr, DependenceGraphT *dg = nullptr)
         : key(KeyT()), dg(dg), ipostdom(nullptr), slice_id(0)
     {
         if (head) {
@@ -58,17 +55,17 @@ public:
         }
     }
 
-    ~BBlock<NodeT>() {
+    ~DGBBlock<NodeT>() {
         if (delete_nodes_on_destr) {
             for (NodeT *nd : nodes)
                 delete nd;
         }
     }
 
-    using BBlockContainerT = EdgesContainer<BBlock<NodeT>>;
+    using DGBBlockContainerT = EdgesContainer<DGBBlock<NodeT>>;
     // we don't need labels with predecessors
-    using PredContainerT = EdgesContainer<BBlock<NodeT>>;
-    using SuccContainerT = DGContainer<BBlockEdge>;
+    using PredContainerT = EdgesContainer<DGBBlock<NodeT>>;
+    using SuccContainerT = DGContainer<DGBBlockEdge>;
 
     SuccContainerT& successors() { return nextBBs; }
     const SuccContainerT& successors() const { return nextBBs; }
@@ -76,8 +73,8 @@ public:
     PredContainerT& predecessors() { return prevBBs; }
     const PredContainerT& predecessors() const { return prevBBs; }
 
-    const BBlockContainerT& controlDependence() const { return controlDeps; }
-    const BBlockContainerT& revControlDependence() const { return revControlDeps; }
+    const DGBBlockContainerT& controlDependence() const { return controlDeps; }
+    const DGBBlockContainerT& revControlDependence() const { return revControlDeps; }
 
     // similary to nodes, basic blocks can have keys
     // they are not stored anywhere, it is more due to debugging
@@ -97,7 +94,7 @@ public:
 
     void append(NodeT *n)
     {
-        assert(n && "Cannot add null node to BBlock");
+        assert(n && "Cannot add null node to DGBBlock");
 
         n->setBasicBlock(this);
         nodes.push_back(n);
@@ -105,7 +102,7 @@ public:
 
     void prepend(NodeT *n)
     {
-        assert(n && "Cannot add null node to BBlock");
+        assert(n && "Cannot add null node to DGBBlock");
 
         n->setBasicBlock(this);
         nodes.push_front(n);
@@ -128,7 +125,7 @@ public:
         iter = nextBBs.begin();
         end = nextBBs.end();
 
-        BBlock<NodeT> *block = iter->target;
+        DGBBlock<NodeT> *block = iter->target;
         // iterate over all successor and
         // check if they are all the same
         for (++iter; iter != end; ++iter)
@@ -144,22 +141,22 @@ public:
     {
         // take every predecessor and reconnect edges from it
         // to successors
-        for (BBlock<NodeT> *pred : prevBBs) {
+        for (DGBBlock<NodeT> *pred : prevBBs) {
             // find the edge that is going to this node
             // and create new edges to all successors. The new edges
             // will have the same label as the found one
-            DGContainer<BBlockEdge> new_edges;
+            DGContainer<DGBBlockEdge> new_edges;
             for (auto I = pred->nextBBs.begin(),E = pred->nextBBs.end(); I != E;) {
                 auto cur = I++;
                 if (cur->target == this) {
                     // create edges that will go from the predecessor
                     // to every successor of this node
-                    for (const BBlockEdge& succ : nextBBs) {
+                    for (const DGBBlockEdge& succ : nextBBs) {
                         // we cannot create an edge to this bblock (we're isolating _this_ bblock),
                         // that would be incorrect. It can occur when we're isolatin a bblock
                         // with self-loop
                         if (succ.target != this)
-                            new_edges.insert(BBlockEdge(succ.target, cur->label));
+                            new_edges.insert(DGBBlockEdge(succ.target, cur->label));
                     }
 
                     // remove the edge from predecessor
@@ -168,7 +165,7 @@ public:
             }
 
             // add newly created edges to predecessor
-            for (const BBlockEdge& edge : new_edges) {
+            for (const DGBBlockEdge& edge : new_edges) {
                 assert(edge.target != this
                        && "Adding an edge to a block that is being isolated");
                 pred->addSuccessor(edge);
@@ -181,7 +178,7 @@ public:
         prevBBs.clear();
 
         // remove reverse edges to this BB
-        for (BBlock<NodeT> *B : controlDeps) {
+        for (DGBBlock<NodeT> *B : controlDeps) {
             // we don't want to corrupt the iterator
             // if this block is control dependent on itself.
             // We're gonna clear it anyway
@@ -193,7 +190,7 @@ public:
 
         // clear also cd edges that blocks have
         // to this block
-        for (BBlock<NodeT> *B : revControlDeps) {
+        for (DGBBlock<NodeT> *B : revControlDeps) {
             if (B == this)
                 continue;
 
@@ -246,7 +243,7 @@ public:
     size_t successorsNum() const { return nextBBs.size(); }
     size_t predecessorsNum() const { return prevBBs.size(); }
 
-    bool addSuccessor(const BBlockEdge& edge)
+    bool addSuccessor(const DGBBlockEdge& edge)
     {
         bool ret = nextBBs.insert(edge);
         edge.target->prevBBs.insert(this);
@@ -254,15 +251,15 @@ public:
         return ret;
     }
 
-    bool addSuccessor(BBlock<NodeT> *b, uint8_t label = 0)
+    bool addSuccessor(DGBBlock<NodeT> *b, uint8_t label = 0)
     {
-        return addSuccessor(BBlockEdge(b, label));
+        return addSuccessor(DGBBlockEdge(b, label));
     }
 
     void removeSuccessors()
     {
         // remove references to this node from successors
-        for (const BBlockEdge& succ : nextBBs) {
+        for (const DGBBlockEdge& succ : nextBBs) {
             // This assertion does not hold anymore, since if we have
             // two edges with different labels to the same successor,
             // and we remove the successor, then we remove 'this'
@@ -281,13 +278,13 @@ public:
         return nextBBs.contains(this);
     }
 
-    void removeSuccessor(const BBlockEdge& succ)
+    void removeSuccessor(const DGBBlockEdge& succ)
     {
         succ.target->prevBBs.erase(this);
         nextBBs.erase(succ);
     }
 
-    unsigned removeSuccessorsTarget(BBlock<NodeT> *target)
+    unsigned removeSuccessorsTarget(DGBBlock<NodeT> *target)
     {
         unsigned removed = 0;
         SuccContainerT tmp;
@@ -305,13 +302,13 @@ public:
 
     void removePredecessors()
     {
-        for (BBlock<NodeT> *BB : prevBBs)
+        for (DGBBlock<NodeT> *BB : prevBBs)
             BB->nextBBs.erase(this);
 
         prevBBs.clear();
     }
 
-    bool addControlDependence(BBlock<NodeT> *b)
+    bool addControlDependence(DGBBlock<NodeT> *b)
     {
         bool ret;
 #ifndef NDEBUG
@@ -351,53 +348,53 @@ public:
     }
 
     // XXX: do this optional?
-    BBlockContainerT& getPostDomFrontiers() { return postDomFrontiers; }
-    const BBlockContainerT& getPostDomFrontiers() const { return postDomFrontiers; }
+    DGBBlockContainerT& getPostDomFrontiers() { return postDomFrontiers; }
+    const DGBBlockContainerT& getPostDomFrontiers() const { return postDomFrontiers; }
 
-    bool addPostDomFrontier(BBlock<NodeT> *BB)
+    bool addPostDomFrontier(DGBBlock<NodeT> *BB)
     {
         return postDomFrontiers.insert(BB);
     }
 
-    bool addDomFrontier(BBlock<NodeT> *DF)
+    bool addDomFrontier(DGBBlock<NodeT> *DF)
     {
         return domFrontiers.insert(DF);
     }
 
-    BBlockContainerT& getDomFrontiers() { return domFrontiers; }
-    const BBlockContainerT& getDomFrontiers() const { return domFrontiers; }
+    DGBBlockContainerT& getDomFrontiers() { return domFrontiers; }
+    const DGBBlockContainerT& getDomFrontiers() const { return domFrontiers; }
 
-    void setIPostDom(BBlock<NodeT> *BB)
+    void setIPostDom(DGBBlock<NodeT> *BB)
     {
         assert(!ipostdom && "Already has the immedate post-dominator");
         ipostdom = BB;
         BB->postDominators.insert(this);
     }
 
-    BBlock<NodeT> *getIPostDom() { return ipostdom; }
-    const BBlock<NodeT> *getIPostDom() const { return ipostdom; }
+    DGBBlock<NodeT> *getIPostDom() { return ipostdom; }
+    const DGBBlock<NodeT> *getIPostDom() const { return ipostdom; }
 
-    BBlockContainerT& getPostDominators() { return postDominators; }
-    const BBlockContainerT& getPostDominators() const { return postDominators; }
+    DGBBlockContainerT& getPostDominators() { return postDominators; }
+    const DGBBlockContainerT& getPostDominators() const { return postDominators; }
 
-    void setIDom(BBlock<NodeT>* BB)
+    void setIDom(DGBBlock<NodeT>* BB)
     {
         assert(!idom && "Already has immediate dominator");
         idom = BB;
         BB->addDominator(this);
     }
 
-    void addDominator(BBlock<NodeT>* BB)
+    void addDominator(DGBBlock<NodeT>* BB)
     {
         assert( BB && "need dominator bblock" );
         dominators.insert(BB);
     }
 
-    BBlock<NodeT> *getIDom() { return idom; }
-    const BBlock<NodeT> *getIDom() const { return idom; }
+    DGBBlock<NodeT> *getIDom() { return idom; }
+    const DGBBlock<NodeT> *getIDom() const { return idom; }
 
-    BBlockContainerT& getDominators() { return dominators; }
-    const BBlockContainerT& getDominators() const { return dominators; }
+    DGBBlockContainerT& getDominators() { return dominators; }
+    const DGBBlockContainerT& getDominators() const { return dominators; }
 
     unsigned int getDFSOrder() const
     {
@@ -405,7 +402,7 @@ public:
     }
 
     // in order to fasten up interprocedural analyses,
-    // we register all the call sites in the BBlock
+    // we register all the call sites in the DGBBlock
     unsigned int getCallSitesNum() const
     {
         return callSites.size();
@@ -459,22 +456,22 @@ private:
     // when we have basic blocks, we do not need
     // to keep control dependencies in nodes, because
     // all nodes in block has the same control dependence
-    BBlockContainerT controlDeps;
-    BBlockContainerT revControlDeps;
+    DGBBlockContainerT controlDeps;
+    DGBBlockContainerT revControlDeps;
 
     // post-dominator frontiers
-    BBlockContainerT postDomFrontiers;
-    BBlock<NodeT> *ipostdom;
+    DGBBlockContainerT postDomFrontiers;
+    DGBBlock<NodeT> *ipostdom;
     // the post-dominator tree edges
     // (reverse to immediate post-dominator)
-    BBlockContainerT postDominators;
+    DGBBlockContainerT postDominators;
 
     // parent of @this in dominator tree
-    BBlock<NodeT> *idom = nullptr;
+    DGBBlock<NodeT> *idom = nullptr;
     // BB.dominators = all children in dominator tree
-    BBlockContainerT dominators;
+    DGBBlockContainerT dominators;
     // dominance frontiers
-    BBlockContainerT domFrontiers;
+    DGBBlockContainerT domFrontiers;
 
     // is this block in some slice?
     uint64_t slice_id;
@@ -487,9 +484,9 @@ private:
 
     // auxiliary data for different analyses
     analysis::AnalysesAuxiliaryData analysisAuxData;
-    friend class analysis::BBlockAnalysis<NodeT>;
+    friend class analysis::DGBBlockAnalysis<NodeT>;
 };
 
 } // namespace dg
 
-#endif // _BBLOCK_H_
+#endif // _DG_BBLOCK_H_

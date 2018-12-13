@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "BBlock.h"
+#include "DGBBlock.h"
 
 namespace dg {
 
@@ -59,7 +59,7 @@ public:
     using const_iterator = typename ContainerType::const_iterator;
 
     DGParameters<NodeT>(NodeT *cs = nullptr)
-    : BBIn(new BBlock<NodeT>), BBOut(new BBlock<NodeT>), callSite(cs){}
+    : BBIn(new DGBBlock<NodeT>), BBOut(new DGBBlock<NodeT>), callSite(cs){}
 
     ~DGParameters<NodeT>()
     {
@@ -175,10 +175,10 @@ public:
     iterator global_end() { return globals.end(); }
     const_iterator global_end() const { return globals.end(); }
 
-    const BBlock<NodeT> *getBBIn() const { return BBIn; }
-    const BBlock<NodeT> *getBBOut() const { return BBOut; }
-    BBlock<NodeT> *getBBIn() { return BBIn; }
-    BBlock<NodeT> *getBBOut() { return BBOut; }
+    const DGBBlock<NodeT> *getBBIn() const { return BBIn; }
+    const DGBBlock<NodeT> *getBBOut() const { return BBOut; }
+    DGBBlock<NodeT> *getBBIn() { return BBIn; }
+    DGBBlock<NodeT> *getBBOut() { return BBOut; }
 
     DGParameterPair<NodeT>* getVarArg() { return vararg.get(); }
     const DGParameterPair<NodeT>* getVarArg() const { return vararg.get(); }
@@ -218,8 +218,8 @@ private:
     // -- we can add control dependencies to this node
     std::unique_ptr<NodeT> noret{};
 
-    BBlock<NodeT> *BBIn;
-    BBlock<NodeT> *BBOut;
+    DGBBlock<NodeT> *BBIn;
+    DGBBlock<NodeT> *BBOut;
     NodeT *callSite;
 
     DGParameterPair<NodeT> *find(KeyT k, ContainerType *C)

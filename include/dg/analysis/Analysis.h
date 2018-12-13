@@ -60,18 +60,18 @@ protected:
 namespace dg {
 
 // forward declaration of BBlock
-template <typename NodeT> class BBlock;
+template <typename NodeT> class DGBBlock;
 
 namespace analysis {
 
 /// --------------------------------------------------------
-//  - BBlocks analysis
+//  - DGBBlocks analysis
 /// --------------------------------------------------------
 template <typename NodeT>
-class BBlockAnalysis : public Analysis<BBlock<NodeT>>
+class DGBBlockAnalysis : public Analysis<DGBBlock<NodeT>>
 {
 public:
-    using BBlockPtrT = BBlock<NodeT> *;
+    using BBlockPtrT = DGBBlock<NodeT> *;
 
     AnalysesAuxiliaryData& getAnalysisData(BBlockPtrT BB)
     {

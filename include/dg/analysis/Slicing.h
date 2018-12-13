@@ -9,7 +9,7 @@
 #include "dg/DependenceGraph.h"
 
 #ifdef ENABLE_CFG
-#include "dg/BBlock.h"
+#include "dg/DGBBlock.h"
 #endif
 
 using dg::ADT::QueueFIFO;
@@ -47,17 +47,17 @@ public:
 
     bool isForward() const { return forward_slice; }
     // returns marked blocks, but only for forward slicing atm
-    const std::set<BBlock<NodeT> *>& getMarkedBlocks() { return markedBlocks; }
+    const std::set<DGBBlock<NodeT> *>& getMarkedBlocks() { return markedBlocks; }
 
 private:
     bool forward_slice{false};
-    std::set<BBlock<NodeT> *> markedBlocks;
+    std::set<DGBBlock<NodeT> *> markedBlocks;
 
 
     struct WalkData
     {
         WalkData(uint32_t si, WalkAndMark *wm,
-                 std::set<BBlock<NodeT> *> *mb = nullptr)
+                 std::set<DGBBlock<NodeT> *> *mb = nullptr)
             : slice_id(si), analysis(wm)
 #ifdef ENABLE_CFG
               , markedBlocks(mb)
@@ -67,7 +67,7 @@ private:
         uint32_t slice_id;
         WalkAndMark *analysis;
 #ifdef ENABLE_CFG
-        std::set<BBlock<NodeT> *> *markedBlocks;
+        std::set<DGBBlock<NodeT> *> *markedBlocks;
 #endif
     };
 
@@ -79,7 +79,7 @@ private:
 #ifdef ENABLE_CFG
         // when we marked a node, we need to mark even
         // the basic block - if there are basic blocks
-        if (BBlock<NodeT> *B = n->getBBlock()) {
+        if (auto B = n->getBBlock()) {
             B->setSlice(slice_id);
             if (data->markedBlocks)
                 data->markedBlocks->insert(B);
@@ -223,16 +223,16 @@ public:
     }
 
 #ifdef ENABLE_CFG
-    virtual bool removeBlock(BBlock<NodeT> *) {
+    virtual bool removeBlock(DGBBlock<NodeT> *) {
         return true;
     }
 
     struct RemoveBlockData {
         uint32_t sl_id;
-        std::set<BBlock<NodeT> *>& blocks;
+        std::set<DGBBlock<NodeT> *>& blocks;
     };
 
-    static void getBlocksToRemove(BBlock<NodeT> *BB, RemoveBlockData& data)
+    static void getBlocksToRemove(DGBBlock<NodeT> *BB, RemoveBlockData& data)
     {
         if (BB->getSlice() == data.sl_id)
             return;
@@ -240,16 +240,16 @@ public:
         data.blocks.insert(BB);
     }
 
-    void sliceBBlocks(BBlock<NodeT> *start, uint32_t sl_id)
+    void sliceBBlocks(DGBBlock<NodeT> *start, uint32_t sl_id)
     {
         // we must queue the blocks ourselves before we potentially remove them
-        legacy::BBlockBFS<NodeT> bfs(legacy::BFS_BB_CFG);
-        std::set<BBlock<NodeT> *> blocks;
+        legacy::DGBBlockBFS<NodeT> bfs(legacy::BFS_BB_CFG);
+        std::set<DGBBlock<NodeT> *> blocks;
 
         RemoveBlockData data = { sl_id, blocks };
         bfs.run(start, getBlocksToRemove, data);
 
-        for (BBlock<NodeT> *blk : blocks) {
+        for (auto blk : blocks) {
             // update statistics
             statistics.nodesRemoved += blk->size();
             statistics.nodesTotal += blk->size();
@@ -274,13 +274,13 @@ public:
         // gather the blocks
         // FIXME: we don't need two loops, just go carefully
         // through the constructed blocks (keep temporary always-valid iterator)
-        std::set<BBlock<NodeT> *> blocks;
+        std::set<DGBBlock<NodeT> *> blocks;
         for (auto& it : CB) {
             if (it.second->getSlice() != sl_id)
                 blocks.insert(it.second);
         }
 
-        for (BBlock<NodeT> *blk : blocks) {
+        for (auto blk : blocks) {
             // update statistics
             statistics.nodesRemoved += blk->size();
             statistics.nodesTotal += blk->size();

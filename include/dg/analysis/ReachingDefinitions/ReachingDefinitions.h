@@ -9,7 +9,7 @@
 #include "dg/analysis/Offset.h"
 #include "dg/analysis/SubgraphNode.h"
 #include "dg/analysis/BFS.h"
-#include "dg/BBlock.h"
+#include "dg/DGBBlock.h"
 #include "dg/ADT/Queue.h"
 #include "dg/DGParameters.h"
 #include "dg/DependenceGraph.h"
@@ -62,7 +62,7 @@ extern RDNode *UNKNOWN_MEMORY;
 class RDNode : public SubgraphNode<RDNode> {
     RDNodeType type;
 
-    BBlock<RDNode> *bblock = nullptr;
+    DGBBlock<RDNode> *bblock = nullptr;
     // marks for DFS/BFS
     unsigned int dfsid;
 public:
@@ -210,11 +210,11 @@ public:
         return nullptr;
     }
 
-    BBlock<RDNode> *getBBlock() {
+    DGBBlock<RDNode> *getBBlock() {
         return bblock;
     }
 
-    void setBasicBlock(BBlock<RDNode> *bb) {
+    void setBasicBlock(DGBBlock<RDNode> *bb) {
         bblock = bb;
     }
 

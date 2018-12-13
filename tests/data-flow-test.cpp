@@ -9,12 +9,12 @@
 namespace dg {
 namespace tests {
 
-class DataFlowA : public analysis::legacy::DataFlowAnalysis<TestNode>
+class DataFlowA : public analysis::legacy::DGDataFlowAnalysis<TestNode>
 {
 public:
     DataFlowA(TestBBlock *B,
               bool (*ron)(TestNode *), uint32_t fl = 0)
-        : analysis::legacy::DataFlowAnalysis<TestNode>(B, fl),
+        : analysis::legacy::DGDataFlowAnalysis<TestNode>(B, fl),
           run_on_node(ron) {}
 
     /* virtual */

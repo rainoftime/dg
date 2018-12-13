@@ -78,7 +78,7 @@ LLVMDefUseAnalysis::LLVMDefUseAnalysis(LLVMDependenceGraph *dg,
                                        LLVMReachingDefinitions *rd,
                                        LLVMPointerAnalysis *pta,
                                        const analysis::LLVMDefUseAnalysisOptions& opts)
-    : analysis::legacy::DataFlowAnalysis<LLVMNode>(dg->getEntryBB(),
+    : analysis::legacy::DGDataFlowAnalysis<LLVMNode>(dg->getEntryBB(),
                                                    analysis::legacy::DATAFLOW_INTERPROCEDURAL),
       dg(dg), RD(rd), PTA(pta), DL(new DataLayout(dg->getModule())), _options(opts)
 {

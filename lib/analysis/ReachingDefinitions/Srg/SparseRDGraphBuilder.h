@@ -6,7 +6,7 @@
 #include <vector>
 #include <stack>
 
-#include "dg/BBlock.h"
+#include "dg/DGBBlock.h"
 #include "dg/analysis/ReachingDefinitions/ReachingDefinitions.h"
 
 #include "analysis/ReachingDefinitions/Srg/PhiPlacement.h"
@@ -23,7 +23,7 @@ class SparseRDGraphBuilder
 {
 public:
     using NodeT = dg::analysis::rd::RDNode;
-    using BlockT = BBlock<NodeT>;
+    using BlockT = DGBBlock<NodeT>;
 
     using VarT = DefSite;
 

@@ -212,12 +212,12 @@ public:
         dumpSubgraphEnd(sub);
     }
 
-    void dumpBBlock(BBlock<NodeT> *BB, int ind = 2)
+    void dumpBBlock(DGBBlock<NodeT> *BB, int ind = 2)
     {
         dumpBB(BB, ind);
     }
 
-    void dumpBBlockEdges(BBlock<NodeT> *BB, int ind = 1)
+    void dumpBBlockEdges(DGBBlock<NodeT> *BB, int ind = 1)
     {
         dumpBBedges(BB, ind);
     }
@@ -238,7 +238,7 @@ private:
         file = new_file;
     }
 
-    void dumpBB(const BBlock<NodeT> *BB, int indent)
+    void dumpBB(const DGBBlock<NodeT> *BB, int indent)
     {
         Indent Ind(indent);
 
@@ -271,7 +271,7 @@ private:
         out << Ind << "} /* cluster_bb_" << BB << " */\n\n";
     }
 
-    void dumpBBedges(BBlock<NodeT> *BB, int indent)
+    void dumpBBedges(DGBBlock<NodeT> *BB, int indent)
     {
         Indent Ind(indent);
 
@@ -317,7 +317,7 @@ private:
                     << "  lhead=cluster_bb_" << S << "]\n";
             }
 
-            for (BBlock<NodeT> *S : BB->getPostDomFrontiers()) {
+            for (auto S : BB->getPostDomFrontiers()) {
                 NodeT *start = BB->getFirstNode();
                 NodeT *end = S->getLastNode();
 
@@ -332,7 +332,7 @@ private:
         }
 
         if (options & PRINT_POSTDOM) {
-            BBlock<NodeT> *ipd = BB->getIPostDom();
+            auto ipd = BB->getIPostDom();
             if (ipd) {
                 NodeT *firstNode = BB->getFirstNode();
                 NodeT *lastNode = ipd->getLastNode();

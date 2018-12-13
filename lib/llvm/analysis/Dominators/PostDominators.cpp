@@ -94,7 +94,7 @@ void LLVMDependenceGraph::computePostDominators(bool addPostDomFrontiers)
         if (!built && addPostDomFrontiers) {
             for (auto& it : our_blocks) {
                 LLVMBBlock *BB = it.second;
-                for (const LLVMBBlock::BBlockEdge& succ : BB->successors()) {
+                for (const auto& succ : BB->successors()) {
                     // in this case we add only the control dependencies,
                     // since we have no pd frontiers
                     BB->addControlDependence(succ.target);

@@ -258,12 +258,12 @@ public:
     size_t getUserDependenciesNum() const { return userEdges.size(); }
 
 #ifdef ENABLE_CFG
-    BBlock<NodeT> *getBBlock() { return basicBlock; }
-    const BBlock<NodeT> *getBBlock() const { return basicBlock; }
+    DGBBlock<NodeT> *getBBlock() { return basicBlock; }
+    const DGBBlock<NodeT> *getBBlock() const { return basicBlock; }
 
-    BBlock<NodeT> *setBasicBlock(BBlock<NodeT> *nbb)
+    DGBBlock<NodeT> *setBasicBlock(DGBBlock<NodeT> *nbb)
     {
-        BBlock<NodeT> *old = basicBlock;
+        auto old = basicBlock;
         basicBlock = nbb;
         return old;
     }
@@ -392,7 +392,7 @@ private:
 #ifdef ENABLE_CFG
     // some analyses need classical CFG edges
     // and it is better to have even basic blocks
-    BBlock<NodeT> *basicBlock{nullptr};
+    DGBBlock<NodeT> *basicBlock{nullptr};
 #endif /* ENABLE_CFG */
 
     // auxiliary data for different analyses

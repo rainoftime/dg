@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "dg/BBlock.h"
+#include "dg/DGBBlock.h"
 #include "dg/analysis/BFS.h"
 
 namespace dg {
@@ -29,17 +29,17 @@ namespace analysis {
 template <typename NodeT>
 class PostDominanceFrontiers
 {
-    static void queuePostDomBBs(BBlock<NodeT> *BB,
-                            std::vector<BBlock<NodeT> *> *blocks)
+    static void queuePostDomBBs(DGBBlock<NodeT> *BB,
+                                std::vector<DGBBlock<NodeT> *> *blocks)
     {
         blocks->push_back(BB);
     }
 
-    void computePDFrontiers(BBlock<NodeT> *BB, bool add_cd)
+    void computePDFrontiers(DGBBlock<NodeT> *BB, bool add_cd)
     {
         // compute DFlocal
-        for (BBlock<NodeT> *pred : BB->predecessors()) {
-            BBlock<NodeT> *ipdom = pred->getIPostDom();
+        for (DGBBlock<NodeT> *pred : BB->predecessors()) {
+            DGBBlock<NodeT> *ipdom = pred->getIPostDom();
             if (ipdom && ipdom != BB) {
                 BB->addPostDomFrontier(pred);
 
@@ -49,9 +49,9 @@ class PostDominanceFrontiers
             }
         }
 
-        for (BBlock<NodeT> *pdom : BB->getPostDominators()) {
-            for (BBlock<NodeT> *df : pdom->getPostDomFrontiers()) {
-                BBlock<NodeT> *ipdom = df->getIPostDom();
+        for (DGBBlock<NodeT> *pdom : BB->getPostDominators()) {
+            for (DGBBlock<NodeT> *df : pdom->getPostDomFrontiers()) {
+                DGBBlock<NodeT> *ipdom = df->getIPostDom();
                 if (ipdom && ipdom != BB && df != BB) {
                     BB->addPostDomFrontier(df);
 
@@ -63,10 +63,10 @@ class PostDominanceFrontiers
     }
 
 public:
-    void compute(BBlock<NodeT> *root, bool add_cd = false)
+    void compute(DGBBlock<NodeT> *root, bool add_cd = false)
     {
-        std::vector<BBlock<NodeT> *> blocks;
-        legacy::BBlockBFS<NodeT> bfs(legacy::BFS_BB_POSTDOM);
+        std::vector<DGBBlock<NodeT> *> blocks;
+        legacy::DGBBlockBFS<NodeT> bfs(legacy::BFS_BB_POSTDOM);
 
         // get BBs in the order of post-dom tree edges (BFS),
         // so that we process it bottom-up

@@ -5,7 +5,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Constants.h>
 
-#include "dg/BBlock.h"
+#include "dg/DGBBlock.h"
 #include "dg/analysis/ReachingDefinitions/ReachingDefinitions.h"
 
 #include "llvm/analysis/ReachingDefinitions/LLVMRDBuilder.h"
@@ -17,7 +17,7 @@ enum class AllocationFunction;
 namespace analysis {
 namespace rd {
 
-using RDBlock = BBlock<RDNode>;
+using RDBlock = DGBBlock<RDNode>;
 
 class LLVMRDBuilderSemisparse : public LLVMRDBuilder
 {

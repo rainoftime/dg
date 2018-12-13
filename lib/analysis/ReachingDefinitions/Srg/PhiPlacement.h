@@ -4,7 +4,7 @@
 
 #include <set>
 
-#include "dg/BBlock.h"
+#include "dg/DGBBlock.h"
 #include "dg/analysis/ReachingDefinitions/ReachingDefinitions.h"
 
 #include "analysis/ReachingDefinitions/Srg/AssignmentFinder.h"
@@ -14,7 +14,7 @@ namespace analysis {
 namespace rd {
 namespace srg {
 
-using PhiAdditions = std::unordered_map<BBlock<RDNode> *, std::set<DefSite>>;
+using PhiAdditions = std::unordered_map<DGBBlock<RDNode> *, std::set<DefSite>>;
 
 /**
  * Calculates where phi-functions for variables should be placed to create SSA form
@@ -25,7 +25,7 @@ using PhiAdditions = std::unordered_map<BBlock<RDNode> *, std::set<DefSite>>;
 class PhiPlacement
 {
 private:
-    using RDBlock = BBlock<RDNode>;
+    using RDBlock = DGBBlock<RDNode>;
 
 public:
     PhiAdditions calculate(AssignmentMap&& am) const

@@ -517,7 +517,7 @@ private:
             bool create_return = true;
 
             if (BB->successorsNum() == 1) {
-                const LLVMBBlock::BBlockEdge& edge = *(BB->successors().begin());
+                const auto& edge = *(BB->successors().begin());
                 if (edge.label != 255) {
                     // don't create return, we created branchinst
                     create_return = false;
@@ -549,7 +549,7 @@ private:
             return;
         }
 
-        for (const LLVMBBlock::BBlockEdge& succ : BB->successors()) {
+        for (const auto& succ : BB->successors()) {
             // skip artificial return basic block
             if (succ.label == 255)
                 continue;

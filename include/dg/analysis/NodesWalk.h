@@ -276,52 +276,52 @@ private:
     {
         // push terminator nodes of all blocks that are
         // control dependent
-        BBlock<NodeT> *BB = n->getBBlock();
+        auto BB = n->getBBlock();
         if (!BB)
             return;
 
-        for (BBlock<NodeT> *CD : BB->revControlDependence())
+        for (auto CD : BB->revControlDependence())
             enqueue(CD->getLastNode());
     }
 
     void processBBlockCDs(NodeT *n)
     {
-        BBlock<NodeT> *BB = n->getBBlock();
+        auto BB = n->getBBlock();
         if (!BB)
             return;
 
-        for (BBlock<NodeT> *CD : BB->controlDependence())
+        for (auto CD : BB->controlDependence())
             enqueue(CD->getFirstNode());
     }
 
 
     void processBBlockCFG(NodeT *n)
     {
-        BBlock<NodeT> *BB = n->getBBlock();
+        auto BB = n->getBBlock();
         if (!BB)
             return;
 
-        for (auto& E : BB->successors())
+        for (auto E : BB->successors())
             enqueue(E.target->getFirstNode());
     }
 
     void processBBlockRevCFG(NodeT *n)
     {
-        BBlock<NodeT> *BB = n->getBBlock();
+        auto BB = n->getBBlock();
         if (!BB)
             return;
 
-        for (BBlock<NodeT> *S : BB->predecessors())
+        for (auto S : BB->predecessors())
             enqueue(S->getLastNode());
     }
 
     void processBBlockPostDomFrontieres(NodeT *n)
     {
-        BBlock<NodeT> *BB = n->getBBlock();
+        auto BB = n->getBBlock();
         if (!BB)
             return;
 
-        for (BBlock<NodeT> *S : BB->getPostDomFrontiers())
+        for (auto S : BB->getPostDomFrontiers())
             enqueue(S->getLastNode());
     }
 #endif // ENABLE_CFG
@@ -355,7 +355,7 @@ enum BBlockWalkFlags {
 // NodeT+QueueT instantiation, which we don't want to,
 // because then BFS and DFS would collide
 template <typename NodeT>
-class BBlockWalkBase : public BBlockAnalysis<NodeT>
+class DGBBlockWalkBase : public DGBBlockAnalysis<NodeT>
 {
 protected:
     // this counter will increase each time we run
@@ -366,16 +366,16 @@ protected:
 
 // counter definition
 template<typename NodeT>
-unsigned int BBlockWalkBase<NodeT>::walk_run_counter = 0;
+unsigned int DGBBlockWalkBase<NodeT>::walk_run_counter = 0;
 
 #ifdef ENABLE_CFG
 template <typename NodeT, typename QueueT>
-class BBlockWalk : public BBlockWalkBase<NodeT>
+class DGBBlockWalk : public DGBBlockWalkBase<NodeT>
 {
 public:
-    using BBlockPtrT = dg::BBlock<NodeT> *;
+    using BBlockPtrT = dg::DGBBlock<NodeT> *;
 
-    BBlockWalk<NodeT, QueueT>(uint32_t fl = BBLOCK_WALK_CFG)
+    DGBBlockWalk<NodeT, QueueT>(uint32_t fl = BBLOCK_WALK_CFG)
         : flags(fl) {}
 
     template <typename FuncT, typename DataT>
@@ -384,7 +384,7 @@ public:
         queue.push(entry);
 
         // set up the value of new walk and set it to entry node
-        runid = ++BBlockWalk<NodeT, QueueT>::walk_run_counter;
+        runid = ++DGBBlockWalk<NodeT, QueueT>::walk_run_counter;
         AnalysesAuxiliaryData& aad = this->getAnalysisData(entry);
         aad.lastwalkid = runid;
 

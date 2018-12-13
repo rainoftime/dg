@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "BBlock.h"
+#include "DGBBlock.h"
 #include "BFS.h"
 
 namespace dg {

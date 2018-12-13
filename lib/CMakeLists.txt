@@ -77,7 +77,7 @@ target_link_libraries(LLVMrd
 			PUBLIC RD)
 
 add_library(LLVMdg SHARED
-	${CMAKE_SOURCE_DIR}/include/dg/BBlock.h
+	${CMAKE_SOURCE_DIR}/include/dg/DGBBlock.h
 	${CMAKE_SOURCE_DIR}/include/dg/Node.h
 	${CMAKE_SOURCE_DIR}/include/dg/DependenceGraph.h
 	${CMAKE_SOURCE_DIR}/include/dg/llvm/LLVMNode.h

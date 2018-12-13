@@ -19,7 +19,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "BBlock.h"
+#include "DGBBlock.h"
 #include "analysis/DominanceFrontiers.h"
 
 namespace dg {

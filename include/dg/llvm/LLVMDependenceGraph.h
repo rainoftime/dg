@@ -44,7 +44,7 @@ namespace rd {
 
 using analysis::rd::LLVMReachingDefinitions;
 
-using LLVMBBlock = dg::BBlock<LLVMNode>;
+using LLVMBBlock = dg::DGBBlock<LLVMNode>;
 
 /// ------------------------------------------------------------------
 //  -- LLVMDependenceGraph

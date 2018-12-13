@@ -37,7 +37,6 @@
 #endif
 
 #include "dg/llvm/analysis/PointsTo/PointerAnalysis.h"
-
 #include "dg/analysis/PointsTo/PointerAnalysisFI.h"
 #include "dg/analysis/PointsTo/PointerAnalysisFS.h"
 #include "dg/analysis/PointsTo/Pointer.h"

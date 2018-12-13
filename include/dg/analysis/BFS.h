@@ -75,14 +75,14 @@ convertBFSBBFlags(uint32_t flags)
 }
 
 template <typename NodeT>
-class BBlockBFS : public BBlockWalk<NodeT,
-                                    QueueFIFO<BBlock<NodeT> *> >
+class DGBBlockBFS : public DGBBlockWalk<NodeT,
+                                      QueueFIFO<DGBBlock<NodeT> *> >
 {
 public:
-    using BBlockPtrT = BBlock<NodeT> *;
+    using BBlockPtrT = DGBBlock<NodeT> *;
 
-    BBlockBFS<NodeT>(uint32_t fl = 0)
-        : BBlockWalk<NodeT, QueueFIFO<BBlock<NodeT> *>>(convertBFSBBFlags(fl)),
+    DGBBlockBFS<NodeT>(uint32_t fl = 0)
+        : DGBBlockWalk<NodeT, QueueFIFO<DGBBlock<NodeT> *>>(convertBFSBBFlags(fl)),
           bfsorder(0), flags(fl) {}
 
     template <typename FuncT, typename DataT>

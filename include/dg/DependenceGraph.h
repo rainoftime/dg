@@ -7,7 +7,7 @@
 #include <cassert>
 #include <memory>
 
-#include "BBlock.h"
+#include "DGBBlock.h"
 #include "ADT/DGContainer.h"
 #include "Node.h"
 
@@ -88,7 +88,7 @@ public:
     using iterator = typename ContainerType::iterator;
     using const_iterator = typename ContainerType::const_iterator;
 #ifdef ENABLE_CFG
-    using BBlocksMapT = std::map<KeyT, BBlock<NodeT> *>;
+    using BBlocksMapT = std::map<KeyT, DGBBlock<NodeT> *>;
 #endif
 
 private:
@@ -114,11 +114,11 @@ private:
 
     // if we want to keep CFG information in the dependence graph,
     // these are entry and exit basic blocks
-    BBlock<NodeT> *entryBB;
-    BBlock<NodeT> *exitBB;
+    DGBBlock<NodeT> *entryBB;
+    DGBBlock<NodeT> *exitBB;
 
     // root of post-dominator tree
-    BBlock<NodeT> *PDTreeRoot;
+    DGBBlock<NodeT> *PDTreeRoot;
 #endif // ENABLE_CFG
 
 protected:
@@ -414,7 +414,7 @@ public:
     BBlocksMapT& getBlocks() { return _blocks; }
     const BBlocksMapT& getBlocks() const { return _blocks; }
     // add block to this graph
-    bool addBlock(KeyT key, BBlock<NodeT> *B) {
+    bool addBlock(KeyT key, DGBBlock<NodeT> *B) {
         return _blocks.emplace(key, B).second;
     }
 
@@ -423,27 +423,27 @@ public:
         return _blocks.erase(key) == 1;
     }
 
-    BBlock<NodeT> *getPostDominatorTreeRoot() const { return PDTreeRoot; }
-    void setPostDominatorTreeRoot(BBlock<NodeT> *r)
+    DGBBlock<NodeT> *getPostDominatorTreeRoot() const { return PDTreeRoot; }
+    void setPostDominatorTreeRoot(DGBBlock<NodeT> *r)
     {
         assert(!PDTreeRoot && "Already has a post-dominator tree root");
         PDTreeRoot = r;
     }
 
-    BBlock<NodeT> *getEntryBB() const { return entryBB; }
-    BBlock<NodeT> *getExitBB() const { return exitBB; }
+    DGBBlock<NodeT> *getEntryBB() const { return entryBB; }
+    DGBBlock<NodeT> *getExitBB() const { return exitBB; }
 
-    BBlock<NodeT> *setEntryBB(BBlock<NodeT> *nbb)
+    DGBBlock<NodeT> *setEntryBB(DGBBlock<NodeT> *nbb)
     {
-        BBlock<NodeT> *old = entryBB;
+        auto old = entryBB;
         entryBB = nbb;
 
         return old;
     }
 
-    BBlock<NodeT> *setExitBB(BBlock<NodeT> *nbb)
+    DGBBlock<NodeT> *setExitBB(DGBBlock<NodeT> *nbb)
     {
-        BBlock<NodeT> *old = exitBB;
+        auto old = exitBB;
         exitBB = nbb;
 
         return old;

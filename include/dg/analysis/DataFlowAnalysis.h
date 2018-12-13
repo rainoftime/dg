@@ -43,13 +43,13 @@ struct DFSOrderLess
 };
 
 template <typename NodeT>
-class BBlockDataFlowAnalysis : public Analysis<NodeT>
+class DGBBlockDataFlowAnalysis : public Analysis<NodeT>
 {
 public:
-    BBlockDataFlowAnalysis<NodeT>(BBlock<NodeT> *entryBB, uint32_t fl = 0)
+    DGBBlockDataFlowAnalysis<NodeT>(DGBBlock<NodeT> *entryBB, uint32_t fl = 0)
         :entryBB(entryBB), flags(fl), changed(false) {}
 
-    virtual bool runOnBlock(BBlock<NodeT> *BB) = 0;
+    virtual bool runOnBlock(DGBBlock<NodeT> *BB) = 0;
 
     void run()
     {
@@ -63,7 +63,7 @@ public:
         if (flags & DATAFLOW_BB_NO_CALLSITES)
             flg |= DFS_BB_NO_CALLSITES;
 
-        BBlockDFS<NodeT> DFS(flg);
+        DGBBlockDFS<NodeT> DFS(flg);
         DFSDataT data(blocks, changed, this);
 
         // we will get all the nodes using DFS
@@ -99,7 +99,7 @@ public:
         return statistics;
     }
 
-    bool addBB(BBlock<NodeT> *BB)
+    bool addBB(DGBBlock<NodeT> *BB)
     {
         changed |= runOnBlock(BB);
         bool ret = blocks.insert(BB).second;
@@ -116,26 +116,26 @@ private:
     // because the BB's newly added does have dfsorder unset
     // and the BlocksSet thinks it already contains it, so
     // it is not added
-    using BlocksSetT = std::set<BBlock<NodeT> * /*,
-                     DFSOrderLess<BBlock<NodeT> *>*/>;
+    using BlocksSetT = std::set<DGBBlock<NodeT> * /*,
+                     DFSOrderLess<DGBBlock<NodeT> *>*/>;
     struct DFSDataT
     {
-        DFSDataT(BlocksSetT& b, bool& c, BBlockDataFlowAnalysis<NodeT> *r)
+        DFSDataT(BlocksSetT& b, bool& c, DGBBlockDataFlowAnalysis<NodeT> *r)
             :blocks(b), changed(c), ref(r) {}
 
         BlocksSetT& blocks;
         bool& changed;
-        BBlockDataFlowAnalysis<NodeT> *ref;
+        DGBBlockDataFlowAnalysis<NodeT> *ref;
     };
 
-    static void dfs_proc_bb(BBlock<NodeT> *BB,
+    static void dfs_proc_bb(DGBBlock<NodeT> *BB,
                             DFSDataT& data)
     {
         data.changed |= data.ref->runOnBlock(BB);
         data.blocks.insert(BB);
     }
 
-    BBlock<NodeT> *entryBB;
+    DGBBlock<NodeT> *entryBB;
     BlocksSetT blocks;
     uint32_t flags;
     bool changed;
@@ -144,14 +144,14 @@ private:
 
 
 template <typename NodeT>
-class DataFlowAnalysis : public BBlockDataFlowAnalysis<NodeT>
+class DGDataFlowAnalysis : public DGBBlockDataFlowAnalysis<NodeT>
 {
 public:
-    DataFlowAnalysis<NodeT>(BBlock<NodeT> *entryBB, uint32_t fl = 0)
-        : BBlockDataFlowAnalysis<NodeT>(entryBB, fl) {};
+    DGDataFlowAnalysis<NodeT>(DGBBlock<NodeT> *entryBB, uint32_t fl = 0)
+        : DGBBlockDataFlowAnalysis<NodeT>(entryBB, fl) {};
 
     /* virtual */
-    bool runOnBlock(BBlock<NodeT> *B)
+    bool runOnBlock(DGBBlock<NodeT> *B)
     {
         bool changed = false;
         NodeT *prev = nullptr;
