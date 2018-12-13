@@ -11,7 +11,7 @@
 #include "ADT/DGContainer.h"
 #include "Node.h"
 
-#include "analysis/Analysis.h"
+#include "dg/analysis/DependenceGraph/Analysis.h"
 
 namespace dg {
 

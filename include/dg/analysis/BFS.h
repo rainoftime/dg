@@ -24,7 +24,7 @@ struct BFS : public NodesWalk<Node, QueueFIFO<Node *>, VisitTracker, EdgeChooser
 } // namespace dg
 
 
-#include "dg/analysis/Analysis.h"
+#include "dg/analysis/DependenceGraph/Analysis.h"
 
 namespace dg {
 namespace analysis {

@@ -109,7 +109,7 @@ public:
 
 
 #include "dg/DGParameters.h"
-#include "dg/analysis/Analysis.h"
+#include "dg/analysis/DependenceGraph/Analysis.h"
 
 namespace dg {
 namespace analysis {

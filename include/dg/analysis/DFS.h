@@ -24,7 +24,7 @@ struct DFS : public NodesWalk<Node, QueueLIFO<Node *>, VisitTracker, EdgeChooser
 } // namespace dg
 
 
-#include "dg/analysis/Analysis.h"
+#include "dg/analysis/DependenceGraph/Analysis.h"
 
 namespace dg {
 namespace analysis {

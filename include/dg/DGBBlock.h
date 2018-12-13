@@ -5,7 +5,7 @@
 #include <list>
 
 #include "ADT/DGContainer.h"
-#include "analysis/Analysis.h"
+#include "analysis/DependenceGraph/Analysis.h"
 
 namespace dg {
 

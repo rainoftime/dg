@@ -17,7 +17,7 @@
 #endif
 
 #include "dg/analysis/BFS.h"
-#include "dg/analysis/PostDominanceFrontiers.h"
+#include "dg/analysis/DependenceGraph/PostDominanceFrontiers.h"
 
 #include "dg/llvm/LLVMDependenceGraph.h"
 
