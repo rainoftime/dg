@@ -16,7 +16,7 @@
 #pragma GCC diagnostic pop
 #endif
 
-#include "dg/analysis/BFS.h"
+#include "dg/analysis/DependenceGraph/BFS.h"
 #include "dg/analysis/DependenceGraph/PostDominanceFrontiers.h"
 
 #include "dg/llvm/LLVMDependenceGraph.h"

@@ -4,7 +4,7 @@
 #include <utility>
 #include <set>
 
-#include "dg/analysis/DFS.h"
+#include "dg/analysis/DependenceGraph/DFS.h"
 #include "dg/analysis/DependenceGraph/Analysis.h"
 
 #ifndef ENABLE_CFG

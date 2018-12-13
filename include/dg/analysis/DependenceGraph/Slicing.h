@@ -3,8 +3,8 @@
 
 #include <set>
 
-#include "dg/analysis/NodesWalk.h"
-#include "dg/analysis/BFS.h"
+#include "dg/analysis/DependenceGraph/NodesWalk.h"
+#include "dg/analysis/DependenceGraph/BFS.h"
 #include "dg/ADT/Queue.h"
 #include "dg/DependenceGraph.h"
 

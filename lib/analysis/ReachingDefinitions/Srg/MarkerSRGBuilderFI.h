@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <map>
 
-#include "dg/analysis/BFS.h"
+#include "dg/analysis/DependenceGraph/BFS.h"
 #include "analysis/ReachingDefinitions/Srg/SparseRDGraphBuilder.h"
 
 namespace dg {
