@@ -957,6 +957,7 @@ PointerGraph *LLVMPointerGraphBuilder::buildLLVMPointerGraph()
 
     // first we must build globals, because nodes can use them as operands
     PSNodesSeq glob = buildGlobals();
+    PS.setGlobals(glob.first);
 
     // now we can build rest of the graph
     PointerSubgraph& subg = buildFunction(*F);
@@ -964,19 +965,6 @@ PointerGraph *LLVMPointerGraphBuilder::buildLLVMPointerGraph()
     assert(root != nullptr);
     // fill in the CFG edges
     addProgramStructure();
-
-    // do we have any globals at all? If so, insert them at the begining
-    // of the graph
-    // FIXME: we do not need to process them later,
-    // should we do it somehow differently?
-    // something like 'static nodes' in PointerGraph...
-    if (glob.first) {
-        assert(glob.second && "Have the start but not the end");
-
-        // this is a sequence of global nodes, make it the root of the graph
-        glob.second->addSuccessor(root);
-        root = glob.first;
-    }
 
     PS.setRoot(root);
 
@@ -988,7 +976,7 @@ PointerGraph *LLVMPointerGraphBuilder::buildLLVMPointerGraph()
         llvm::errs() << "Pointer Subgraph is broken (right after building)!\n";
         assert(!validator.getErrors().empty());
         llvm::errs() << validator.getErrors();
-        return nullptr;
+        //return nullptr;
     } else {
         llvm::errs() << validator.getWarnings();
     }
