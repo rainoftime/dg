@@ -112,8 +112,8 @@ public:
 
     void queue_globals() {
         assert(to_process.empty());
-        if (PS->firstGlobal()) {
-            to_process = PS->getNodes(PS->firstGlobal());
+        for (auto& it : PS->getGlobals()) {
+            to_process.push_back(it.get());
         }
     }
 
@@ -162,7 +162,7 @@ public:
         // process global nodes, these must reach fixpoint after one iteration
         queue_globals();
         iteration();
-        assert((queue_changed(), queue_globals(), !iteration()) && "Globals did not reach fixpoint");
+        assert((to_process.clear(), changed.clear(), queue_globals(), !iteration()) && "Globals did not reach fixpoint");
         to_process.clear();
         changed.clear();
 
