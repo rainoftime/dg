@@ -586,7 +586,7 @@ void LLVMPointerGraphBuilder::checkMemSet(const llvm::Instruction *Inst)
 // return first and last nodes of the block
 PSNodesSeq
 LLVMPointerGraphBuilder::buildPointerGraphBlock(const llvm::BasicBlock& block,
-                                                      PSNode *parent)
+                                                PointerSubgraph *parent)
 {
     PSNodesSeq blk{nullptr, nullptr};
     for (const llvm::Instruction& Inst : block) {
@@ -606,22 +606,11 @@ LLVMPointerGraphBuilder::buildPointerGraphBlock(const llvm::BasicBlock& block,
                (seq.second || seq.first->getType() == PSNodeType::CALL)
                && "Didn't created the instruction properly");
 
-        // set parent to instructions if it is not a call,
-        // because then the seq represents the whole
-        // subgraph. In the case of CallInst, we just set
-        // the parent to the nodes for seq itself, as these
-        // are the call and call return nodes belonging
-        // to this graph
-        if (llvm::isa<llvm::CallInst>(&Inst)) {
-            seq.first->setParent(parent);
-            if (seq.second)
-                seq.second->setParent(parent);
-        } else {
-            PSNode *cur = seq.first;
-            while (cur) {
-                cur->setParent(parent);
-                cur = cur->getSingleSuccessorOrNull();
-            }
+        // set parent to the new nodes
+        PSNode *cur = seq.first;
+        while (cur) {
+            cur->setParent(parent);
+            cur = cur->getSingleSuccessorOrNull();
         }
 
         if (!seq.second) {
@@ -683,7 +672,7 @@ std::vector<const llvm::BasicBlock *> getBasicBlocksInDominatorOrder(llvm::Funct
 }
 
 void LLVMPointerGraphBuilder::buildArguments(const llvm::Function& F,
-                                                PSNode *parent)
+                                             PointerSubgraph *parent)
 {
     for (auto A = F.arg_begin(), E = F.arg_end(); A != E; ++A) {
 #ifndef NDEBUG
@@ -709,18 +698,13 @@ LLVMPointerGraphBuilder::buildFunction(const llvm::Function& F)
     PSNodeEntry *root = PSNodeEntry::get(PS.create(PSNodeType::ENTRY));
     assert(root);
     root->setFunctionName(F.getName().str());
-    root->setParent(root);
 
     // if the function has variable arguments,
     // then create the node for it
     PSNode *vararg = nullptr;
     if (F.isVarArg()) {
         vararg = PS.create(PSNodeType::PHI, nullptr);
-        vararg->setParent(root);
     }
-
-    // create the arguments
-    buildArguments(F, root);
 
     // add record to built graphs here, so that subsequent call of this function
     // from buildPointerGraphBlock won't get stuck in infinite recursive call
@@ -731,6 +715,13 @@ LLVMPointerGraphBuilder::buildFunction(const llvm::Function& F)
 
     assert(subg->root == root && subg->vararg == vararg);
 
+    // create the arguments
+    buildArguments(F, subg);
+
+    root->setParent(subg);
+    if (vararg)
+        vararg->setParent(subg);
+
     assert(_funcInfo.find(&F) == _funcInfo.end());
     auto& finfo = _funcInfo[&F];
     finfo.llvmBlocks =
@@ -738,7 +729,7 @@ LLVMPointerGraphBuilder::buildFunction(const llvm::Function& F)
 
     // build the instructions from blocks
     for (const llvm::BasicBlock *block : finfo.llvmBlocks) {
-        auto seq = buildPointerGraphBlock(*block, root);
+        auto seq = buildPointerGraphBlock(*block, subg);
 
         // gather all return nodes
         if (seq.second &&
@@ -1004,15 +995,10 @@ LLVMPointerGraphBuilder::getFunctionNodes(const llvm::Function *F) const
     if (it == subgraphs_map.end())
         return {};
 
-    const PointerSubgraph *subg = it->second;
-    auto nodes = getReachableNodes(subg->root, nullptr, false /*interproc */);
-
-    // Filter the nodes just to those that are from the function.
-    // We cannot do it when getting the nodes as the procedures
-    // are fully inlined.
+    auto nodes = getReachableNodes(it->second->root, nullptr, false /* interproc */);
     std::vector<PSNode *> ret;
-    std::copy_if(nodes.begin(), nodes.end(), std::back_inserter(ret),
-                 [&subg](PSNode *node){return node->getParent() == subg->root;} );
+    ret.reserve(nodes.size());
+    std::copy(nodes.begin(), nodes.end(), std::back_inserter(ret));
 
     return ret;
 }
