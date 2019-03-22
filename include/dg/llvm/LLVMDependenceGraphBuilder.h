@@ -163,10 +163,6 @@ public:
         _runPointerAnalysis();
         _runReachingDefinitionsAnalysis();
 
-        if (_PTA->getForks().empty()) {
-            _dg->setThreads(false);
-        }
-
         // build the graph itself
         _dg->build(_M, _PTA.get(), _RD.get(), _entryFunction);
 
@@ -201,10 +197,6 @@ public:
     std::unique_ptr<LLVMDependenceGraph>&& constructCFGOnly() {
         // data dependencies
         _runPointerAnalysis();
-
-        if (_PTA->getForks().empty()) {
-            _dg->setThreads(false);
-        }
 
         // build the graph itself
         _dg->build(_M, _PTA.get(), _RD.get(), _entryFunction);

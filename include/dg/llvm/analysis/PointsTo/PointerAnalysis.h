@@ -118,16 +118,35 @@ public:
     }
 };
 
-class LLVMPointerAnalysis
-{
+class LLVMPointerAnalysis {
+    ///
+    // Get the points-to information for the given LLVM value.
+    // The return object has methods begin(), end() that can be used
+    // for iteration over (llvm::Value *, Offset) pairs of the
+    // points-to set. Moreover, the object has methods hasUnknown()
+    // and hasNull() that reflect whether the points-to set of the
+    // LLVM value contains unknown element of null.
+    virtual LLVMPointsToSet getLLVMPointsTo(const llvm::Value *val) = 0;
+
+    ///
+    // This method is the same as getLLVMPointsTo, but it returns
+    // also the information whether the node of pointer analysis exists
+    // (opposed to the getLLVMPointsTo, which returns a set with
+    // unknown element when the node does not exists)
+    virtual std::pair<bool, LLVMPointsToSet>
+    getLLVMPointsToChecked(const llvm::Value *val) = 0;
+};
+
+class DGPointerAnalysis : public LLVMPointerAnalysis {
+
     PointerSubgraph *PS = nullptr;
     std::unique_ptr<LLVMPointerSubgraphBuilder> _builder;
 
-    LLVMPointerAnalysisOptions createOptions(const char *entry_func,
+    DGPointerAnalysisOptions createOptions(const char *entry_func,
                                              uint64_t field_sensitivity,
                                              bool threads = false)
     {
-        LLVMPointerAnalysisOptions opts;
+        DGPointerAnalysisOptions opts;
         opts.threads = threads;
         opts.setFieldSensitivity(field_sensitivity);
         opts.setEntryFunction(entry_func);
@@ -142,13 +161,13 @@ class LLVMPointerAnalysis
 
 public:
 
-    LLVMPointerAnalysis(const llvm::Module *m,
+    DGPointerAnalysis(const llvm::Module *m,
                         const char *entry_func = "main",
                         uint64_t field_sensitivity = Offset::UNKNOWN,
                         bool threads = false)
-        : LLVMPointerAnalysis(m, createOptions(entry_func, field_sensitivity, threads)) {}
+        : DGPointerAnalysis(m, createOptions(entry_func, field_sensitivity, threads)) {}
 
-    LLVMPointerAnalysis(const llvm::Module *m, const LLVMPointerAnalysisOptions opts)
+    DGPointerAnalysis(const llvm::Module *m, const DGPointerAnalysisOptions opts)
         : _builder(new LLVMPointerSubgraphBuilder(m, opts)) {}
 
     ///
@@ -165,7 +184,7 @@ public:
     // points-to set. Moreover, the object has methods hasUnknown()
     // and hasNull() that reflect whether the points-to set of the
     // LLVM value contains unknown element of null.
-    LLVMPointsToSet getLLVMPointsTo(const llvm::Value *val) {
+    LLVMPointsToSet getLLVMPointsTo(const llvm::Value *val) override {
         if (auto node = getPointsTo(val))
             return LLVMPointsToSet(node->pointsTo);
         else
@@ -178,7 +197,7 @@ public:
     // (opposed to the getLLVMPointsTo, which returns a set with
     // unknown element when the node does not exists)
     std::pair<bool, LLVMPointsToSet>
-    getLLVMPointsToChecked(const llvm::Value *val) {
+    getLLVMPointsToChecked(const llvm::Value *val) override {
         if (auto node = getPointsTo(val))
             return {true, LLVMPointsToSet(node->pointsTo)};
         else
@@ -262,7 +281,7 @@ public:
     {
         buildSubgraph();
 
-        LLVMPointerAnalysisImpl<PTType> PTA(PS, _builder.get());
+        DGPointerAnalysisImpl<PTType> PTA(PS, _builder.get());
         PTA.run();
     }
 
@@ -274,31 +293,31 @@ public:
     analysis::pta::PointerAnalysis *createPTA()
     {
         buildSubgraph();
-        return new LLVMPointerAnalysisImpl<PTType>(PS, _builder.get());
+        return new DGPointerAnalysisImpl<PTType>(PS, _builder.get());
     }
 };
 
 template <>
-inline void LLVMPointerAnalysis::run<analysis::pta::PointerAnalysisFSInv>()
+inline void DGPointerAnalysis::run<analysis::pta::PointerAnalysisFSInv>()
 {
     // build the subgraph
     assert(_builder && "Incorrectly constructed PTA, missing builder");
     _builder->setInvalidateNodesFlag(true);
     buildSubgraph();
 
-    LLVMPointerAnalysisImpl<analysis::pta::PointerAnalysisFSInv> PTA(PS, _builder.get());
+    DGPointerAnalysisImpl<analysis::pta::PointerAnalysisFSInv> PTA(PS, _builder.get());
     PTA.run();
 }
 
 template <>
-inline analysis::pta::PointerAnalysis *LLVMPointerAnalysis::createPTA<analysis::pta::PointerAnalysisFSInv>()
+inline analysis::pta::PointerAnalysis *DGPointerAnalysis::createPTA<analysis::pta::PointerAnalysisFSInv>()
 {
     // build the subgraph
     assert(_builder && "Incorrectly constructed PTA, missing builder");
     _builder->setInvalidateNodesFlag(true);
     buildSubgraph();
 
-    return new LLVMPointerAnalysisImpl<analysis::pta::PointerAnalysisFSInv>(PS, _builder.get());
+    return new DGPointerAnalysisImpl<analysis::pta::PointerAnalysisFSInv>(PS, _builder.get());
 }
 
 } // namespace dg
