@@ -7,16 +7,18 @@
 #include <iostream>
 #endif // not NDEBUG
 
+#include "DGParameters.h"
+
 namespace dg {
 namespace sdg {
 
 enum class DGNodeType {
         // Invalid node
-        INVALID=0
+        INVALID=0,
         // Ordinary instruction
         INSTRUCTION = 1,
         ARGUMENT,
-        CALL,
+        CALL
 };
 
 inline const char *DGNodeTypeToCString(enum DGNodeType type)
@@ -27,26 +29,23 @@ inline const char *DGNodeTypeToCString(enum DGNodeType type)
         ELEM(DGNodeType::INSTRUCTION)
         ELEM(DGNodeType::ARGUMENT)
         ELEM(DGNodeType::CALL)
-       default:
-            assert(false && "unknown PointerSubgraph type");
             return "Unknown type";
     };
 #undef ELEM
 }
 
-class PointerSubgraph;
-
 class DGNode {
-    DGNodeType _type;
     unsigned _id{0};
+    DGNodeType _type;
 
 protected:
-    Node(unsigned id, DGNodeType t) : id(_id), type(t) {}
+    DGNode(unsigned id, DGNodeType t) : _id(id), _type(t) {}
 
 public:
-    virtual ~Node() = default;
+    virtual ~DGNode() = default;
 
-    DGNodeType getType() const { return type; }
+    DGNodeType getType() const { return _type; }
+    unsigned getID() const { return _id; }
 
 #ifndef NDEBUG
     virtual void dump() const {
@@ -54,7 +53,7 @@ public:
     }
 
     // verbose dump
-    void dumpv() const override {
+    virtual void dumpv() const {
         dump();
         std::cout << "\n";
     }
@@ -67,28 +66,48 @@ template <DGNodeType T> bool isa(DGNode *n) {
 }
 
 class DependenceGraph;
+class DGNodeCall;
 
 /// ----------------------------------------------------------------------
 // Instruction
 /// ----------------------------------------------------------------------
 class DGNodeInstruction : public DGNode {
+    friend class DGNodeCall;
+
+    DependenceGraph *_dg;
+
+    // for call ctor
+    DGNodeInstruction(unsigned id, DGNodeType t, DependenceGraph *dg)
+    : DGNode(id, DGNodeType::CALL), _dg(dg) {
+        assert(DGNodeType::CALL == t);
+    }
+
 public:
-    DGNodeInstruction(unsigned id) : DGNode(id, DGNodeType::INSTRUCTION) {}
+    DGNodeInstruction(unsigned id, DependenceGraph *dg)
+    : DGNode(id, DGNodeType::INSTRUCTION), _dg(dg) {}
 
     static DGNodeInstruction *get(DGNode *n) {
-        return isa<DGNodeType::INSTRUCTION>(n) ?
+        return (isa<DGNodeType::INSTRUCTION>(n) ||
+                isa<DGNodeType::CALL>(n)) ?
             static_cast<DGNodeInstruction *>(n) : nullptr;
     }
+
+    DependenceGraph *getDG() { return _dg; }
+    const DependenceGraph *getDG() const { return _dg; }
 };
 
 /// ----------------------------------------------------------------------
 // Call
 /// ----------------------------------------------------------------------
-class DGNodeCall : public Node {
-    std::set<DependenceGraph *> _callees;
+class DGNodeCall : public DGNodeInstruction {
+    // called functions
+    std::set<DependenceGraph *> _callees{};
+    // actual parameters of the call
+    std::unique_ptr<DGParameters> _parameters{};
 
 public:
-    DGNodeCall(unsigned id) : DGNode(id, DGNodeType::CALL) {}
+    DGNodeCall(unsigned id, DependenceGraph *dg)
+    : DGNodeInstruction(id, DGNodeType::CALL, dg) {}
 
     static DGNodeCall *get(DGNode *n) {
         return isa<DGNodeType::CALL>(n) ?
@@ -96,15 +115,21 @@ public:
     }
 
     const std::set<DependenceGraph *>& getCallees() const { return _callees; }
-    bool addCalee(DependenceGraph *g) { _callees.insert(g).second; }
+    bool addCalee(DependenceGraph *g) { return _callees.insert(g).second; }
+
+    DGParameters *getParameters() { return _parameters.get(); }
+    const DGParameters *getParameters() const { return _parameters.get(); }
 };
 
 /// ----------------------------------------------------------------------
 // Argument
 /// ----------------------------------------------------------------------
 class DGNodeArgument : public DGNode {
+    DGParameters *_parent{nullptr};
+
 public:
-    DGNodeArgument(unsigned id) : DGNode(id, DGNodeType::ARGUMENT) {}
+    DGNodeArgument(unsigned id, DGParameters *p)
+    : DGNode(id, DGNodeType::ARGUMENT), _parent(p) {}
 
     static DGNodeArgument *get(DGNode *n) {
         return isa<DGNodeType::ARGUMENT>(n) ?

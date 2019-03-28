@@ -91,6 +91,7 @@ add_library(LLVMdg SHARED
 
 	llvm/LLVMNode.cpp
 	llvm/LLVMDependenceGraph.cpp
+	llvm/SystemDependenceGraph/SystemDependenceGraph.cpp
 	llvm/LLVMDGVerifier.cpp
 	llvm/analysis/Dominators/PostDominators.cpp
 	llvm/analysis/DefUse/DefUse.cpp

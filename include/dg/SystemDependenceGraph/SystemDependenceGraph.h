@@ -1,5 +1,5 @@
-#ifndef _DG_DEPENDENCE_GRAPH_H_
-#define _DG_DEPENDENCE_GRAPH_H_
+#ifndef _DG_SYSTEM_DEPENDENCE_GRAPH_H_
+#define _DG_SYSTEM_DEPENDENCE_GRAPH_H_
 
 #include <memory>
 
@@ -9,7 +9,6 @@ namespace dg {
 namespace sdg {
 
 class DGNode;
-class DependenceGraph;
 
 class SystemDependenceGraph {
     std::set<DGNode *> _globals;
@@ -22,7 +21,7 @@ public:
     void setEntry(DependenceGraph *g) { _entry = g; }
 
     DependenceGraph *createGraph() {
-        _graphs.emplace_back(new DependenceGraph(_graph.size()));
+        _graphs.emplace_back(new DependenceGraph(_graphs.size(), this));
         return _graphs.back().get();
     }
 };
@@ -30,4 +29,4 @@ public:
 } // namespace sdg
 } // namespace dg
 
-#endif // _DG_DEPENDENCE_GRAPH_H_
+#endif // _DG_SYSTEM_DEPENDENCE_GRAPH_H_
