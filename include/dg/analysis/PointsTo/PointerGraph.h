@@ -59,6 +59,8 @@ public:
     // this is the node where we gather the variadic-length arguments
     PSNode *vararg{nullptr};
 
+    bool computedLoops() const { return _computed_loops; }
+
     // information about loops in this subgraph
     const std::vector<PSNode *> *getLoop(const PSNode *nd) const {
         assert(_computed_loops && "Call computeLoops() first");
@@ -74,14 +76,15 @@ public:
     }
 
     const std::vector<std::vector<PSNode *>>& getLoops() {
-        if (!_computed_loops)
+        if (!computedLoops())
             computeLoops();
         return _loops;
     }
 
+    // FIXME: remember just that a node is on loop, not the whole loops
     void computeLoops() {
         assert(root);
-        assert(!_computed_loops && "computedLoops() called repeatedly");
+        assert(!computedLoops() && "computeLoops() called repeatedly");
         _computed_loops = true;
 
         // compute the strongly connected components
@@ -242,7 +245,8 @@ public:
 
     void computeLoops() {
         for (auto& it : _subgraphs) {
-            it->computeLoops();
+            if (!it->computedLoops())
+                it->computeLoops();
         }
     }
 
