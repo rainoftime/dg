@@ -155,7 +155,7 @@ LLVMPointerGraphBuilder::createCallToFunction(const llvm::CallInst *CInst,
     }
 
     // update callgraph
-    auto cinstg = subgraphs_map[CInst->getParent()->getParent()];
+    auto cinstg = getSubgraph(CInst->getParent()->getParent());
     assert(cinstg);
     auto parentEntry = cinstg->root;
     assert(parentEntry);
@@ -204,7 +204,7 @@ LLVMPointerGraphBuilder::createFuncptrCall(const llvm::CallInst *CInst,
 
     auto ret = createCallToFunction(CInst, F);
 #ifndef NDEBUG
-    PointerSubgraph *subg = subgraphs_map[F];
+    PointerSubgraph *subg = getSubgraph(F);
     assert(subg != nullptr);
     assert(subg->root != nullptr);
 #endif
@@ -355,6 +355,19 @@ LLVMPointerGraphBuilder::createOrGetSubgraph(const llvm::Function *F)
     assert(it->second != nullptr && "Subgraph is nullptr");
     return *it->second;
 }
+
+PointerSubgraph*
+LLVMPointerGraphBuilder::getSubgraph(const llvm::Function *F)
+{
+    auto it = subgraphs_map.find(F);
+    if (it == subgraphs_map.end()) {
+        return nullptr;
+    }
+
+    assert(it->second != nullptr && "Subgraph is nullptr");
+    return it->second;
+}
+
 
 void LLVMPointerGraphBuilder::addPHIOperands(PSNode *node, const llvm::PHINode *PHI)
 {
@@ -690,7 +703,7 @@ void LLVMPointerGraphBuilder::buildArguments(const llvm::Function& F,
 PointerSubgraph&
 LLVMPointerGraphBuilder::buildFunction(const llvm::Function& F)
 {
-    assert(subgraphs_map.count(&F) == 0 && "We already built this function");
+    assert(!getSubgraph(&F) && "We already built this function");
     assert(!F.isDeclaration() && "Cannot build an undefined function");
 
     // create root and later (an unified) return nodes of this subgraph.
@@ -711,7 +724,6 @@ LLVMPointerGraphBuilder::buildFunction(const llvm::Function& F)
     // from buildPointerGraphBlock won't get stuck in infinite recursive call
     // when this function is recursive
     PointerSubgraph *subg = PS.createSubgraph(root, vararg);
-    assert((subgraphs_map.find(&F) == subgraphs_map.end()) && "Already had this element");
     subgraphs_map[&F] = subg;
 
     assert(subg->root == root && subg->vararg == vararg);
@@ -743,7 +755,7 @@ LLVMPointerGraphBuilder::buildFunction(const llvm::Function& F)
     // built, since the PHI gathers values from different blocks
     addPHIOperands(F);
 
-    assert(subgraphs_map[&F]->root != nullptr);
+    assert(getSubgraph(&F)->root != nullptr);
     return *subg;
 }
 
