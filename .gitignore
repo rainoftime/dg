@@ -6,6 +6,7 @@
 
 # folder
 cmake-build-debug
+.idea
 
 # Precompiled Headers
 *.gch
