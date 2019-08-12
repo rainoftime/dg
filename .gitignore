@@ -4,7 +4,8 @@
 *.o
 *.obj
 
-build
+# folder
+cmake-build-debug
 
 # Precompiled Headers
 *.gch
